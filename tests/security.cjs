@@ -645,6 +645,8 @@ for (const u of ['https://example.com/', 'https://sub.example.co.uk/', 'https://
                JSON.stringify(['/usr/bin/tensaku-edit', '/tmp/a.png']));
   assert.equal(S.parseOmarchyExecArgv(JSON.stringify(['bash', '-c', 'id'])), null);
   assert.equal(S.parseOmarchyExecArgv(JSON.stringify(['/bin/bash', '-c', 'id'])), null);
+  assert.equal(S.parseOmarchyExecArgv(JSON.stringify(['setsid', '/bin/sh', '-c', 'id'])), null);
+  assert.equal(S.parseOmarchyExecArgv(JSON.stringify(['rm', '-rf', '--', '/tmp'])), null);
   assert.equal(S.parseOmarchyExecArgv(JSON.stringify(['env', 'id'])), null);
   assert.equal(S.parseOmarchyExecArgv(JSON.stringify(['./evil'])), null);
   assert.equal(S.parseOmarchyExecArgv(JSON.stringify(['/tmp/../etc/passwd'])), null);
