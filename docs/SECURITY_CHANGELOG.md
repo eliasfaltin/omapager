@@ -1,5 +1,12 @@
 # Security changelog
 
+## Unreleased
+
+- Honour Omarchy screenshot toasts' `omarchy-exec-argv` on click and Super+Alt+,.
+  Allowlist tensaku-edit, tensaku, satty, swappy and omasnap as a bare name or
+  under /usr/bin and /usr/local/bin. Drop the argv from history. App names
+  remain claims.
+
 ## v1.1.1 — 2026-09-13
 
 - Keep `fetchRemoteIcons` config-only. Removing its UI control does not change

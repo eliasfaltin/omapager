@@ -52,6 +52,22 @@ class Storage(unittest.TestCase):
                 self.assertNotIn(secret, path.read_text())
             self.assertEqual(path.stat().st_mode & 0o777, 0o600)
         self.assertEqual((self.home/'.local/state/omarchy/omapager').stat().st_mode & 0o777, 0o700)
+    def test_exec_argv_is_not_persisted(self):
+        entry = {
+            'key': 'shot',
+            'app': 'omarchy-action',
+            'summary': 'Screenshot saved',
+            'body': 'Edit with Super + Alt + ,',
+            'execArgv': json.dumps(['tensaku-edit', '/tmp/shot.png']),
+        }
+        self.assertEqual(self.run_store('put', payload=entry).returncode, 0)
+        restored = json.loads(self.run_store('restore').stdout)[0]
+        self.assertNotIn('execArgv', restored)
+        self.assertEqual(self.run_store('close', 'shot', 'done').returncode, 0)
+        history = json.loads(self.run_store('history').stdout)
+        self.assertEqual(len(history), 1)
+        self.assertNotIn('execArgv', history[0])
+        self.assertNotIn('tensaku-edit', json.dumps(history[0]))
     def test_ordinary_restore_and_off(self):
         self.assertEqual(self.run_store('put',payload={'key':'n1','body':'ordinary message'}).returncode,0)
         self.assertEqual(json.loads(self.run_store('restore').stdout)[0]['body'],'ordinary message')

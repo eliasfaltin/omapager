@@ -191,6 +191,16 @@ side effects. Notification labels are plain text; only sanitized body markup is
 RichText. Store.sanitiseForPersistence and the Python store independently redact
 code-bearing notifications. Do not remove either boundary.
 
+Omarchy screenshot toasts carry `omarchy-exec-argv`. Click and the stock
+`notifications invokeLast` binding (Super+Alt+,) run it through
+`Security.parseOmarchyExecArgv` then `Quickshell.execDetached`. App names
+are claims, so only tensaku-edit, tensaku, satty, swappy and omasnap may
+run, as a bare name or under /usr/bin and /usr/local/bin. Re-parse on
+activate. History never keeps the argv: `Store.sanitiseForPersistence`
+clears it and the Python store's field allowlist omits it.
+`node tests/security.cjs` covers the parser; the Python store test covers
+the persistence drop.
+
 The panel's Recent stack is session-only, not another persistence path.
 `Service.rememberRecent()` keeps at most 20 bounded text snapshots after
 notification admission, excluding arrivals during global quiet or a source
