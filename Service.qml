@@ -1393,7 +1393,20 @@ Item {
     Hyprland.dispatch('hl.dsp.focus({window = hl.get_window("address:' + win.address + '")})')
   }
 
+  function runExecArgv(argv) {
+    Quickshell.execDetached(argv[0].charAt(0) === "/" ? argv : ["/usr/bin/env"].concat(argv))
+  }
+
   function activate(key) {
+    var at = rowIndexFor(key)
+    var row = at >= 0 ? toasts.get(at) : null
+    var argv = Security.parseOmarchyExecArgv(row ? row.execArgv : "")
+    if (argv) {
+      runExecArgv(argv)
+      closeToast(key, "activated")
+      return
+    }
+
     var ref = refs[key]
     var handled = false
     if (allowDefaultActionOnCardClick && ref && ref.actions) {
@@ -1406,8 +1419,6 @@ Item {
     }
 
     if (!handled) {
-      var at = rowIndexFor(key)
-      var row = at >= 0 ? toasts.get(at) : null
       if (row) {
         // Source first, link last. A Slack message quoting a link to
         // somewhere else is still a Slack notification: clicking it should

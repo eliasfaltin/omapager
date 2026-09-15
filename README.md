@@ -254,6 +254,8 @@ Omarchy's existing comma-key shortcuts work without configuration:
 | `SUPER` `ALT` `,` | invoke the newest one, as clicking it would |
 | `SUPER` `SHIFT` `ALT` `,` | put the last few back on screen |
 
+Omarchy screenshot toasts carry `omarchy-exec-argv`. Click and Super+Alt+, run that editor.
+
 ### Optional bindings
 
 Check for conflicts with `omarchy menu keybindings --print` before adding these

@@ -45,10 +45,14 @@ function snapshot(n, key, urgencyEnum) {
   // What the card can offer to do. Scanned from the lifted body, so a Chrome
   // notification does not offer to open the site it announced itself with.
   var found = Detect.scan(id.summary, id.body)
+  var parsedExec = raw.app === "omarchy-action"
+    ? Security.parseOmarchyExecArgv(hints["omarchy-exec-argv"])
+    : null
   return normalise({
     key: key,
     originalId: n.id || 0,
     senderPid: senderPid,
+    execArgv: parsedExec ? JSON.stringify(parsedExec) : "",
     app: Security.bounded(n.appName, Security.MAX_APP_NAME),
     appIcon: Security.bounded(n.appIcon || named, 256),
     summary: id.summary,
@@ -78,7 +82,7 @@ function snapshot(n, key, urgencyEnum) {
 }
 
 // The fields an in-place update (replaces_id) must write through to the row.
-var ROLES = ["originalId", "senderPid", "app", "appIcon", "summary", "body", "rawBody", "bodyRich",
+var ROLES = ["originalId", "senderPid", "execArgv", "app", "appIcon", "summary", "body", "rawBody", "bodyRich",
              "bodyLine", "source", "groupKey", "image", "urgency",
              "expireTimeout", "duration", "ts",
              "code", "codes", "link", "meeting", "phone", "replyPath", "replyTo"]
@@ -105,7 +109,7 @@ var RESTORE_GRACE = 20000     // 20s for a notification that outlived its sender
 // without `source`, and every notification for the rest of the session lost
 // it. Everything goes through normalise() so they all have every field.
 var SHAPE = {
-  key: "", originalId: 0, senderPid: 0, app: "", appIcon: "", summary: "", body: "",
+  key: "", originalId: 0, senderPid: 0, execArgv: "", app: "", appIcon: "", summary: "", body: "",
   bodyRich: "", bodyLine: "", rawBody: "", source: "", groupKey: "", image: "",
   code: "", codes: "", link: "", meeting: false, phone: "", replyPath: "", replyTo: "",
   stored_image: "", urgency: 1, expireTimeout: 0, duration: 0, ts: 0,
@@ -240,5 +244,6 @@ function sanitiseForPersistence(row) {
     out.bodyRich = out.body
   }
   out.replyPath = ""; out.replyTo = ""; out.image = ""; out.stored_image = ""
+  out.execArgv = ""
   return out
 }

@@ -638,4 +638,41 @@ for (const u of ['https://example.com/', 'https://sub.example.co.uk/', 'https://
   assert.equal(row.link, '', 'review_p2_restored_malicious_link_not_trusted (loopback body link)');
 }
 
+{
+  const shot = JSON.stringify(['tensaku-edit', '/tmp/shot.png']);
+  assert.equal(JSON.stringify(S.parseOmarchyExecArgv(shot)), shot);
+  assert.equal(JSON.stringify(S.parseOmarchyExecArgv(JSON.stringify(['/usr/bin/tensaku-edit', '/tmp/a.png']))),
+               JSON.stringify(['/usr/bin/tensaku-edit', '/tmp/a.png']));
+  assert.equal(S.parseOmarchyExecArgv(JSON.stringify(['bash', '-c', 'id'])), null);
+  assert.equal(S.parseOmarchyExecArgv(JSON.stringify(['/bin/bash', '-c', 'id'])), null);
+  assert.equal(S.parseOmarchyExecArgv(JSON.stringify(['env', 'id'])), null);
+  assert.equal(S.parseOmarchyExecArgv(JSON.stringify(['./evil'])), null);
+  assert.equal(S.parseOmarchyExecArgv(JSON.stringify(['/tmp/../etc/passwd'])), null);
+  assert.equal(S.parseOmarchyExecArgv(JSON.stringify(['-foo'])), null);
+  assert.equal(S.parseOmarchyExecArgv(''), null);
+  const omarchy = Store.snapshot({
+    appName: 'omarchy-action', summary: 'Screenshot saved',
+    body: 'Edit with Super + Alt + ,', hints: { 'omarchy-exec-argv': shot }
+  }, 'shot', { Normal: 1 });
+  assert.equal(omarchy.execArgv, shot);
+  assert.equal(Store.sanitiseForPersistence(omarchy).execArgv, '');
+  const slack = Store.snapshot({
+    appName: 'Slack', summary: 'hi', body: 'there',
+    hints: { 'omarchy-exec-argv': shot }
+  }, 'slack', { Normal: 1 });
+  assert.equal(slack.execArgv, '');
+  const qml = fs.readFileSync(__dirname + '/../Service.qml', 'utf8');
+  assert.match(qml, /Security\.parseOmarchyExecArgv\(row \? row\.execArgv/);
+  const run = qml.match(/function runExecArgv\(argv\) \{[\s\S]*?\n  \}/)[0];
+  const calls = [];
+  const scope = { Quickshell: { execDetached: argv => calls.push(argv) } };
+  vm.createContext(scope);
+  vm.runInContext(run, scope);
+  scope.runExecArgv(['tensaku-edit', '/tmp/shot.png']);
+  assert.equal(JSON.stringify(calls[0]), JSON.stringify(['/usr/bin/env', 'tensaku-edit', '/tmp/shot.png']));
+  calls.length = 0;
+  scope.runExecArgv(['/usr/bin/tensaku-edit', '/tmp/shot.png']);
+  assert.equal(JSON.stringify(calls[0]), JSON.stringify(['/usr/bin/tensaku-edit', '/tmp/shot.png']));
+}
+
 console.log('security JS: passed');

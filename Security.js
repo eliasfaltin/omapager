@@ -53,3 +53,34 @@ function openExternalUrl(raw) {
   var safe=safeExternalUrl(raw)
   return safe ? Qt.openUrlExternally(safe) : false
 }
+
+// Omarchy screenshot toasts (and other omarchy-action notifications) carry the
+// click command as hint omarchy-exec-argv, a JSON argv string. Stock
+// omarchy.notifications runs it on Super+Alt+, / card click. Structural
+// checks only: a well-formed argv from omarchy-action is accepted; shells,
+// relative paths, and leading-dash programs are not.
+function parseOmarchyExecArgv(value) {
+  if (Array.isArray(value)) {
+    try { value = JSON.stringify(value) } catch (e) { return null }
+  }
+  var text = String(value || "")
+  if (!text || text.length > MAX_BODY) return null
+
+  var parsed
+  try { parsed = JSON.parse(text) } catch (e) { return null }
+  if (!Array.isArray(parsed) || parsed.length === 0 || parsed.length > 32) return null
+  for (var i = 0; i < parsed.length; i++) {
+    if (typeof parsed[i] !== "string" || parsed[i].length > MAX_URL) return null
+  }
+
+  var prog = parsed[0]
+  if (!prog || prog.charAt(0) === "-") return null
+  var base = prog.substring(prog.lastIndexOf("/") + 1)
+  if (/^(?:ba)?sh$|^dash$|^zsh$|^fish$|^env$|^python[0-9.]*$|^perl$|^ruby$/.test(base)) return null
+  if (prog.charAt(0) === "/") {
+    if (prog.indexOf("\0") >= 0 || /\/\.\.(?:\/|$)/.test(prog)) return null
+  } else if (!/^[A-Za-z0-9._+-]+$/.test(prog)) {
+    return null
+  }
+  return parsed
+}
